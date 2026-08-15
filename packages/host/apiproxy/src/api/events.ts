@@ -131,6 +131,7 @@ export type HostFrame =
     blank: boolean
     parentSessionId?: SessionId
     origin?: 'subagent'
+    codexSource?: true
     cwd?: string
     agentPreset?: string
   }

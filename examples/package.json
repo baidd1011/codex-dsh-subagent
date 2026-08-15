@@ -10,6 +10,7 @@
     "@deepseek-ai/cordis-plugin-logger-console": "workspace:*",
     "@deepseek-ai/cordis-plugin-timer": "workspace:*",
     "@deepseek-ai/dsh-acp-demo": "workspace:*",
+    "@deepseek-ai/dsh-mcp-agent-demo": "workspace:*",
     "@deepseek-ai/dsh-agent": "workspace:*",
     "@deepseek-ai/dsh-agent-loop": "workspace:*",
     "@deepseek-ai/dsh-agent-spine-demo": "workspace:*",
@@ -43,6 +44,7 @@
     "@deepseek-ai/dsh-llm-deepseek": "workspace:*",
     "@deepseek-ai/dsh-llm-pi-ai": "workspace:*",
     "@deepseek-ai/dsh-llm-replay": "workspace:*",
+    "@deepseek-ai/dsh-mcp-agent-server": "workspace:*",
     "@deepseek-ai/dsh-loader-smoke": "workspace:*",
     "@deepseek-ai/dsh-lsp": "workspace:*",
     "@deepseek-ai/dsh-lsp-stdio": "workspace:*",
@@ -112,6 +114,8 @@
     "@deepseek-ai/dsh-web": "workspace:*",
     "@deepseek-ai/dsh-web-fetch-http": "workspace:*",
     "@deepseek-ai/dsh-workflow-worker-thread": "workspace:*",
-    "@deepseek-ai/dsh-agent-instructions": "workspace:*"
+    "@deepseek-ai/dsh-agent-instructions": "workspace:*",
+    "@deepseek-ai/dsh-agent-presets": "workspace:*",
+    "@deepseek-ai/dsh-persona": "workspace:*"
   }
 }

@@ -514,9 +514,10 @@ function applySessionListMetadata(state: SessionListMetadata, event: SessionEven
   const lastPromptAt = event.type === 'user/message' && event.data.source.kind === 'user'
     ? event.time
     : state.lastPromptAt
-  return blank === state.blank && lastPromptAt === state.lastPromptAt
+  const codexSource = state.codexSource === true || event.type === 'session/source'
+  return blank === state.blank && lastPromptAt === state.lastPromptAt && codexSource === state.codexSource
     ? state
-    : { blank, lastPromptAt }
+    : { blank, lastPromptAt, ...codexSource ? { codexSource: true } : {} }
 }
 
 /** Fold exact list metadata for an attached Session. */
@@ -532,9 +533,14 @@ function sessionListUpdatedAt(header: SessionHeader, metadata: SessionListMetada
 }
 
 /** Shared Session-header projection for list baselines and creation frames. */
-function sessionListFields(header: SessionHeader, events: readonly SessionEvent[] = []): {
+function sessionListFields(
+  header: SessionHeader,
+  events: readonly SessionEvent[] = [],
+  metadata?: SessionListMetadata,
+): {
   parentSessionId?: SessionId
   origin?: 'subagent'
+  codexSource?: true
   cwd?: string
   agentPreset?: string
 } {
@@ -545,6 +551,8 @@ function sessionListFields(header: SessionHeader, events: readonly SessionEvent[
   return {
     ...header.parentSession === undefined ? {} : { parentSessionId: header.parentSession },
     ...header.origin === undefined ? {} : { origin: header.origin },
+    ...((metadata?.codexSource === true || events.some(event => event.type === 'session/source'))
+      ? { codexSource: true as const } : {}),
     ...header.cwd === undefined ? {} : { cwd: header.cwd },
     ...agentPreset === undefined ? {} : { agentPreset },
   }
@@ -620,7 +628,7 @@ async function summarizeCold(
     // Header-only: reading the log for a blank-window preset switch would
     // defeat the same index read, and attaching the session replaces this row
     // with `summarize()`, which resolves the switch from the events.
-    ...sessionListFields(meta),
+    ...sessionListFields(meta, [], probed ?? metadata),
   }
 }
 
@@ -1186,6 +1194,12 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     if (agent === undefined) throw new Error('api-proxy: agent setup has no scoped agent')
     selectionFor(agent)
   }
+
+  // Install the native Web model-selection reference before a non-Web caller
+  // (such as the MCP bridge) starts the first turn. This keeps the same
+  // default-model and live model-switch semantics for every ordinary session,
+  // instead of letting a transport install a competing fixed selection.
+  ctx.on('agent/created', ({ agent }) => { selectionFor(agent) })
 
   /**
    * Reject an attempt to run an existing session under a different preset.
@@ -2375,6 +2389,9 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             details: {},
           })
         }
+        if (source.header.origin === 'subagent' && source.header.parentSession === undefined) {
+          return err(request, apiRemoteSubagentOwnershipError(sessionId))
+        }
         const events = source.events
         // An in-log anchor belongs to the turn containing it and must never
         // clip backward to an earlier completed turn. Omitted and past-end
@@ -2419,14 +2436,21 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         // it already carries. Now that no model-facing row sits in the host
         // plane, composing nothing would leave the child with no tools at all.
         const forkComposition = await composeAgent(resolveSessionPreset(source))
+        // Source markers describe who created the original root. A fork is a
+        // new ordinary DSH session, so do not copy that marker into its seed.
+        // Re-number the remaining seed events because Session requires a
+        // contiguous zero-based sequence in a constructor seed.
+        const seed = events.slice(0, cut)
+          .filter(event => event.type !== 'session/source')
+          .map((event, seq) => ({ ...event, seq }))
         try {
           await ctx.agents.create({
             sessionId: childId,
-            seed: events.slice(0, cut),
+            seed,
             meta: {
               ...source.header.cwd === undefined ? {} : { cwd: source.header.cwd },
               parentSession: source.id,
-              seedLength: cut,
+              seedLength: seed.length,
               ...forkComposition.agentPreset === undefined
                 ? {}
                 : { agentPreset: forkComposition.agentPreset },

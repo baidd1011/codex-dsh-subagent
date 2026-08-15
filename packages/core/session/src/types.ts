@@ -235,6 +235,12 @@ export type RequestHeaderReason = 'initial' | 'resume' | 'change'
  */
 export interface SessionEventMap {
   /**
+   * Records the non-model product surface that created this session. The
+   * marker is informational only: it does not grant ownership or restrict
+   * ordinary session operations.
+   */
+  'session/source': { source: 'codex' }
+  /**
    * Opens turn `turn` before the loop claims queued input or runs pre-step.
    * Rejection, empty input, cancellation, or failure may close it with no
    * step; otherwise the following identified `user/message` event or batch

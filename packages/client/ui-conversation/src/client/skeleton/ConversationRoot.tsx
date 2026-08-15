@@ -23,6 +23,10 @@ export function ConversationRoot({
   const inputState = useInput(s => s)
   const cwd = useSessions(s => sessionId === undefined ? undefined : s.byId[sessionId]?.cwd)
   const summaryBlank = useSessions(s => sessionId === undefined ? undefined : s.byId[sessionId]?.blank)
+  const externalReadOnly = useSessions((s) => {
+    const summary = sessionId === undefined ? undefined : s.byId[sessionId]
+    return summary?.origin === 'subagent' && summary.parentId === undefined && summary.codexSource !== true
+  })
   const workspaces = useWorkspaces(s => s)
   // A plugin this package cannot import (ui-model-selection) says this session cannot
   // send; its reason is already localized by whoever raised it.
@@ -80,6 +84,11 @@ export function ConversationRoot({
     || (composerPhase === 'blank' && (openState === 'open' || summaryBlank === true))
   const zone: InputZone | undefined =
     session === undefined || inputState === undefined ? undefined : { session, input: inputState }
+  // Legacy external root sessions are an observation surface. Do not mount the
+  // writable input-zone extensions (queue, plan, goal and other optional
+  // controls) even when their host plugins are present; the transcript and
+  // header utilities remain available below.
+  const composerZone = externalReadOnly ? undefined : zone
 
   // The chip is a selector; label resolution walks the flow top-down:
   //   1. a just-picked workspace (pending) → its title;
@@ -148,12 +157,13 @@ export function ConversationRoot({
         // user clears it.
         ? { blocked: composerBlock, placeholder: composerBlock.reason }
         : hero ? { placeholder: t('placeholder.hero') } : {}),
+    ...(externalReadOnly ? { readOnly: true, placeholder: t('placeholder.external') } : {}),
     overlay: renderSlot('conversation.input.overlay', {}),
-    leftItems: zone === undefined ? null : renderSlot('conversation.input.left', zone),
-    rightItems: zone === undefined ? null : renderSlot('conversation.input.right', zone),
+    leftItems: composerZone === undefined ? null : renderSlot('conversation.input.left', composerZone),
+    rightItems: composerZone === undefined ? null : renderSlot('conversation.input.right', composerZone),
     // Stats band under the card, inside the bar's width column so both
     // share one constraint (composer.dock = stats-line family).
-    footer: !hero && zone !== undefined ? renderSlot('conversation.composer.dock', zone) : null,
+    footer: !hero && composerZone !== undefined ? renderSlot('conversation.composer.dock', composerZone) : null,
   })
 
   const composerBar = (
@@ -161,7 +171,7 @@ export function ConversationRoot({
       {hero && <HeroGlow className={css.heroGlow} />}
       {hero && <HeroShell t={t} />}
       {hero && heroWorkspaceRow}
-      {zone !== undefined && renderSlot('conversation.input.dock', zone)}
+      {composerZone !== undefined && renderSlot('conversation.input.dock', composerZone)}
       {inputBar}
     </div>
   )

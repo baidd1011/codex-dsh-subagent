@@ -7,3 +7,4 @@
 | 包 | 职责 |
 |---|---|
 | [`mcp-client/`](mcp-client/README.md) | MCP 客户端桥接，将外部服务器工具注册到 `ctx.tools` |
+| [`mcp-agent-server/`](mcp-agent-server/README.md) | MCP stdio 与 Web Host server，将外部主 Agent 的任务自动映射为普通 DSH session |

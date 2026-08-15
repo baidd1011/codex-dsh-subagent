@@ -373,6 +373,25 @@ describe('workspace browser rows', () => {
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
+  it('marks a Codex source root and keeps ordinary session actions available', () => {
+    const onRename = vi.fn()
+    const onFork = vi.fn()
+    const onArchive = vi.fn()
+    const node: SessionNode = {
+      id: sid('codex-root'), title: '检查依赖', blank: false, running: true,
+      runningSubagentCount: 0, completed: false, updatedAt: 0, externalKind: 'codex',
+    }
+    render(<SessionNodeItem node={node} currentId={node.id} now={0} onOpen={vi.fn()}
+      onRename={onRename} onFork={onFork} onArchive={onArchive} t={t} />)
+    expect(screen.getByText('Codex 子任务')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '会话“检查依赖”的操作' }))
+    expect(screen.getByRole('menuitem', { name: '归档会话' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: '重命名' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: '分叉会话' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('menuitem', { name: '归档会话' }))
+    expect(onArchive).toHaveBeenCalledWith(node.id)
+  })
+
 
   it('shows the hover card after the dwell and suppresses it while the row menu is open', () => {
     vi.useFakeTimers()

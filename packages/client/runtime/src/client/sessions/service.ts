@@ -55,6 +55,8 @@ export interface SessionSummary {
   parentId?: SessionId
   /** Coarse durable origin for navigation filtering; not a continuation capability. */
   origin?: 'subagent'
+  /** Source badge for a normal session created through the Codex MCP bridge. */
+  codexSource?: true
   running: boolean
   /** User interaction currently blocking this session (sidebar amber-dot state). */
   pendingInteraction?: PendingInteractionStatus
@@ -682,6 +684,7 @@ export class SessionRuntime implements ISessions {
         ...(entry.cwd !== undefined ? { cwd: entry.cwd } : {}),
         ...(entry.parentSessionId !== undefined ? { parentId: entry.parentSessionId } : {}),
         ...(entry.origin !== undefined ? { origin: entry.origin } : {}),
+        ...(entry.codexSource === true ? { codexSource: true as const } : {}),
         ...(entry.agentPreset !== undefined ? { agentPreset: entry.agentPreset } : {}),
       }
     }

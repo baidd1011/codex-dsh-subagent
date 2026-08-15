@@ -1,0 +1,32 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    { "path": "../../../vendor/cordis" },
+    { "path": "../../../vendor/schemastery" },
+    { "path": "../../util/brand" },
+    { "path": "../../credentials/credentials" },
+    { "path": "../../core/session" },
+    { "path": "../../core/agent" },
+    { "path": "../../core/agent-default-model" },
+    { "path": "../../llm/llm" },
+    { "path": "../../jobs/jobs" },
+    { "path": "../../preset/agent-presets" },
+    { "path": "../../session/session-persistence" },
+    { "path": "../../sandbox/sandbox" },
+    { "path": "../../sandbox/sandbox-policy" },
+    { "path": "../../interaction/user-approval" },
+    { "path": "../../interaction/permission-presets" },
+    { "path": "../../host/webserver" },
+    { "path": "../../host/apiproxy" },
+    { "path": "../../subagent/subagent" },
+    { "path": "../../workspace/workspace" },
+    { "path": "../../runtime-diagnostics/invariants" }
+  ]
+}

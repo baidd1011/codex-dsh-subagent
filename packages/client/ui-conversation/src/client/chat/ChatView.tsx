@@ -153,6 +153,10 @@ export function ChatView({
   const inbox = useSession(s => s.queue)
   // Workspace root off the session list row: path summaries display relative to it.
   const cwd = useSessions(s => s.byId[sessionId]?.cwd)
+  const forkDisabled = useSessions((s) => {
+    const summary = s.byId[sessionId]
+    return summary?.origin === 'subagent' && summary.parentId === undefined && summary.codexSource !== true
+  })
   const running = useSession(s => s.running)
   const openState = useSession(s => s.openState)
   const openError = useSession(s => s.openError)
@@ -389,6 +393,7 @@ export function ChatView({
               openFile={openFile}
               inspectCall={inspectCall}
               forkAt={forkAt}
+              forkDisabled={forkDisabled}
               loadImage={loadImage}
               fileMentions={fileMentions}
               renderSlot={renderSlot}

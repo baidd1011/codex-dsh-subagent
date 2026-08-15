@@ -5,7 +5,7 @@
  * runtime's bind-dependent LAN snapshot.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -70,6 +70,20 @@ interface BashContribution {
 }
 
 describe('web-app runtime glue', () => {
+  it('keeps the default MCP write boundary at the Web Host cwd', () => {
+    const patch = readFileSync(new URL('../cordis.patch.yml', import.meta.url), 'utf8')
+    expect(patch).toContain('process.env.DSH_MCP_ALLOWED_ROOT?.trim() || process.cwd()')
+    expect(patch).not.toContain('resolve(process.cwd(), \'..\')')
+  })
+
+  it('pins Web defaults to DeepSeek V4 Pro with maximum reasoning', () => {
+    const patch = readFileSync(new URL('../cordis.patch.yml', import.meta.url), 'utf8')
+    expect(patch).toContain('model: deepseek-v4-pro')
+    expect(patch).toContain('reasoningEffort: max')
+    expect(patch).toContain('allowedPermissionPresets: [read-only, workspace-write, danger-full-access]')
+    expect(patch).not.toContain('preset: standard')
+  })
+
   it('mounts dist serving, prompt section, bash variables, and prints the URL with the LAN snapshot', async () => {
     stageDist()
     const ctx = new Context()

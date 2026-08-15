@@ -225,6 +225,8 @@
       "@deepseek-ai/dsh-sdk-client": ["./packages/sdk/client/src"],
       "@deepseek-ai/dsh-sdk-protocol": ["./packages/sdk/protocol/src"],
       "@deepseek-ai/dsh-sdk-jsonrpc-server": ["./packages/sdk/server/src"],
+      "@deepseek-ai/dsh-mcp-agent-server": ["./packages/mcp/mcp-agent-server/src/index.ts"],
+      "@deepseek-ai/dsh-mcp-agent-server/web": ["./packages/mcp/mcp-agent-server/src/web.ts"],
       "@deepseek-ai/dsh-*": [
         "./packages/core/*/src",
         "./packages/prompt/*/src",

@@ -92,7 +92,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }[T]
 ```
 
-来源：[`packages/core/session/src/types.ts:336`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:343`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:372`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:404`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:342`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:349`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:378`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:410`](../packages/core/session/src/types.ts)
 
 ## 事件
 
@@ -217,7 +217,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 类型：[StreamChunk](subsystems/llm-streaming.md)
 
-来源：[`packages/core/session/src/types.ts:266`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:272`](../packages/core/session/src/types.ts)
 
 <a id="assistantmessage--surface"></a>
 
@@ -235,7 +235,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 类型：[TokenUsage](subsystems/llm-streaming.md)
 
-来源：[`packages/core/session/src/types.ts:273`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:279`](../packages/core/session/src/types.ts)
 
 ### `command/*`
 
@@ -496,6 +496,30 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/llm/llm-retry/src/types.ts:11`](../packages/llm/llm-retry/src/types.ts)
 
+### `mcp-agent/*`
+
+<a id="mcp-agenttask-ended--log-only"></a>
+
+#### `mcp-agent/task-ended` — log-only
+
+```ts persistence-catalog
+/** Durable terminal marker for one Codex-dispatched task. */
+'mcp-agent/task-ended': { taskId: string; messageId: string; turn: number; status: TaskStatus }
+```
+
+来源：[`packages/mcp/mcp-agent-server/src/index.ts:46`](../packages/mcp/mcp-agent-server/src/index.ts)
+
+<a id="mcp-agenttask-started--log-only"></a>
+
+#### `mcp-agent/task-started` — log-only
+
+```ts persistence-catalog
+/** Durable correlation marker for one Codex-dispatched task. */
+'mcp-agent/task-started': { taskId: string; messageId: string }
+```
+
+来源：[`packages/mcp/mcp-agent-server/src/index.ts:44`](../packages/mcp/mcp-agent-server/src/index.ts)
+
 ### `permission/*`
 
 <a id="permissionpreset--log-only"></a>
@@ -545,7 +569,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'request/context': RequestContext
 ```
 
-来源：[`packages/core/session/src/types.ts:309`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:315`](../packages/core/session/src/types.ts)
 
 <a id="requestheader--log-only"></a>
 
@@ -559,7 +583,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'request/header': { header: EpochHeader; reason: RequestHeaderReason }
 ```
 
-来源：[`packages/core/session/src/types.ts:304`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:310`](../packages/core/session/src/types.ts)
 
 ### `sandbox/*`
 
@@ -634,7 +658,22 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'session/end-seed': Record<string, never>
 ```
 
-来源：[`packages/core/session/src/types.ts:332`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:338`](../packages/core/session/src/types.ts)
+
+<a id="sessionsource--log-only"></a>
+
+#### `session/source` — log-only
+
+```ts persistence-catalog
+/**
+ * Records the non-model product surface that created this session. The
+ * marker is informational only: it does not grant ownership or restrict
+ * ordinary session operations.
+ */
+'session/source': { source: 'codex' }
+```
+
+来源：[`packages/core/session/src/types.ts:242`](../packages/core/session/src/types.ts)
 
 <a id="sessiontitle--log-only"></a>
 
@@ -676,7 +715,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'step/end': { turn: number; step: number }
 ```
 
-来源：[`packages/core/session/src/types.ts:256`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:262`](../packages/core/session/src/types.ts)
 
 <a id="stepstart--log-only"></a>
 
@@ -687,7 +726,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'step/start': { turn: number; step: number }
 ```
 
-来源：[`packages/core/session/src/types.ts:254`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:260`](../packages/core/session/src/types.ts)
 
 ### `subagent/*`
 
@@ -721,7 +760,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 类型：[TodoItem](subsystems/session.md)
 
-来源：[`packages/core/session/src/types.ts:299`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:305`](../packages/core/session/src/types.ts)
 
 ### `tool/*`
 
@@ -740,7 +779,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 类型：[CallId](subsystems/core.md)
 
-来源：[`packages/core/session/src/types.ts:279`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:285`](../packages/core/session/src/types.ts)
 
 <a id="toolcode-dispatch--log-only"></a>
 
@@ -815,7 +854,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }
 ```
 
-来源：[`packages/core/session/src/types.ts:291`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:297`](../packages/core/session/src/types.ts)
 
 ### `tool-workflow/*`
 
@@ -895,7 +934,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 类型：[TurnEndReason](subsystems/session.md)
 
-来源：[`packages/core/session/src/types.ts:252`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:258`](../packages/core/session/src/types.ts)
 
 <a id="turnstart--log-only"></a>
 
@@ -911,7 +950,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'turn/start': { turn: number }
 ```
 
-来源：[`packages/core/session/src/types.ts:243`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:249`](../packages/core/session/src/types.ts)
 
 ### `user/*`
 
@@ -930,7 +969,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'user/message': UserMessage
 ```
 
-来源：[`packages/core/session/src/types.ts:264`](../packages/core/session/src/types.ts)
+来源：[`packages/core/session/src/types.ts:270`](../packages/core/session/src/types.ts)
 
 ### `web/*`
 

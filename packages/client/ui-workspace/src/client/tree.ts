@@ -1,7 +1,7 @@
 /**
  * Derives the workspace browser tree from Host Workspace order and membership.
  * Unassigned Sessions trail under Ungrouped; only the selected blank Session
- * remains visible.
+ * and published root external Sessions remain visible before their first turn.
  */
 import {
   indexSubagentDescendants, type PendingInteractionStatus, type SessionId, type SessionListState,
@@ -30,6 +30,10 @@ export interface SessionNode {
   /** Finished running while not selected and not yet opened (the green "done" reminder dot). */
   completed: boolean
   updatedAt: number
+  /** Root external DSH session classification; nested subagents remain hidden. */
+  externalKind?: 'codex' | 'external'
+  /** Legacy parentless subagent session that intentionally remains read-only. */
+  legacyReadOnly?: true
 }
 
 /** Session order selected by the Workspace browser. */
@@ -67,6 +71,10 @@ export interface SearchResultNode {
   /** Finished running while not selected and not yet opened (the green "done" reminder dot). */
   completed: boolean
   snippet?: string
+  /** Root external DSH session classification shown beside the title. */
+  externalKind?: 'codex' | 'external'
+  /** Legacy parentless subagent session that intentionally remains read-only. */
+  legacyReadOnly?: true
 }
 
 /** Bounded merged search projection plus the refine-query hint bit. */
@@ -111,14 +119,29 @@ function byRecency(a: SessionSummary, b: SessionSummary): number {
 
 /**
  * Ordinary sessions are visible; among blank sessions, only the current one
- * is visible. Subagent children use their parent header catalog; archived
- * sessions are visible nowhere, while their accounting slots remain so
- * unarchiving restores position.
+ * is visible. A root external Session is visible as soon as it is published,
+ * including the interval before its first turn, so callers can observe a
+ * delegated task immediately. Subagent children use their parent header
+ * catalog; archived sessions are visible nowhere, while their accounting
+ * slots remain so unarchiving restores position.
  */
 function sessionVisible(session: SessionSummary, current: SessionId | undefined, archived: ReadonlySet<SessionId>): boolean {
-  return session.origin !== 'subagent'
+  const externalRoot = session.origin === 'subagent' && session.parentId === undefined
+  const codexRoot = session.codexSource === true && session.parentId === undefined
+  return (session.origin !== 'subagent' || externalRoot || codexRoot)
     && !archived.has(session.id)
-    && (!session.blank || session.id === current)
+    && (externalRoot || codexRoot || !session.blank || session.id === current)
+}
+
+/** Classify only root external sessions; true nested children remain hidden. */
+function externalKind(session: SessionSummary): SessionNode['externalKind'] {
+  if (session.codexSource === true && session.parentId === undefined) return 'codex'
+  if (session.origin === 'subagent' && session.parentId === undefined) return 'external'
+  return undefined
+}
+
+function legacyReadOnly(session: SessionSummary): true | undefined {
+  return session.origin === 'subagent' && session.parentId === undefined ? true : undefined
 }
 
 /**
@@ -215,6 +238,7 @@ function sessionNode(
   s: SessionSummary,
   descendants: ReadonlyMap<SessionId, SubagentDescendantSummary>,
 ): SessionNode {
+  const kind = externalKind(s)
   return {
     id: s.id,
     title: sessionTitle(s),
@@ -223,6 +247,8 @@ function sessionNode(
     runningSubagentCount: descendants.get(s.id)?.runningCount ?? 0,
     completed: s.completed === true,
     updatedAt: s.updatedAt,
+    ...(kind === undefined ? {} : { externalKind: kind }),
+    ...legacyReadOnly(s) === undefined ? {} : { legacyReadOnly: true as const },
     ...(s.pendingInteraction === undefined ? {} : { pendingInteraction: s.pendingInteraction }),
   }
 }
@@ -232,7 +258,8 @@ function sessionNode(
  *
  * Every group shows; sessions populate under expanded groups in the selected
  * local order. Blank sessions are excluded except for the selected
- * provisional New Session row; archived sessions are excluded everywhere.
+ * provisional New Session row and published root external Sessions; archived
+ * sessions are excluded everywhere.
  * Content search lives outside this derivation
  * (see {@link deriveSearchResults}).
  * @param list - sessions list snapshot (`current` feeds containsCurrent).
@@ -375,6 +402,7 @@ export function deriveSearchResults(
   return {
     items: ordered.slice(0, limit).map((summary) => {
       const match = contentBySession.get(summary.id)
+      const kind = externalKind(summary)
       return {
         id: summary.id,
         title: sessionTitle(summary),
@@ -385,6 +413,8 @@ export function deriveSearchResults(
           ? {}
           : { pendingInteraction: summary.pendingInteraction }),
         completed: summary.completed === true,
+        ...(kind === undefined ? {} : { externalKind: kind }),
+        ...legacyReadOnly(summary) === undefined ? {} : { legacyReadOnly: true as const },
         ...match === undefined ? {} : { snippet: match.snippet },
       }
     }),

@@ -64,6 +64,21 @@
   line-height: 20px;
 }
 
+/* Root external sessions carry a compact source badge in the browser. */
+.badge {
+  flex: none;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+  padding: 0 4px;
+  background: var(--dsw-alias-fill-tsp-secondary);
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 10px;
+  line-height: 16px;
+}
+
 .searchResultMeta {
   display: flex;
   align-items: center;

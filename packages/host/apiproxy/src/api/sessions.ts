@@ -41,6 +41,8 @@ export interface SessionListMetadata {
   blank: boolean
   /** Latest source.kind=user message time in the checkpoint prefix. */
   lastPromptAt: number | null
+  /** True after the durable Codex source marker enters the checkpoint prefix. */
+  codexSource?: boolean
 }
 
 declare module '@deepseek-ai/dsh-llm' {
@@ -198,6 +200,8 @@ export interface SessionSummary {
   parentSessionId?: SessionId
   /** Coarse durable origin used by navigation surfaces; never proves resumability. */
   origin?: 'subagent'
+  /** True when the ordinary session was created through the Codex MCP bridge. */
+  codexSource?: true
   /** Session working directory (header.cwd passthrough); absent when unrecorded. */
   cwd?: string
   /**

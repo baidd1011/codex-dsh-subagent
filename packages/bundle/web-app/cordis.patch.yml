@@ -13,6 +13,16 @@
 
 # ── surface-specific values the base deliberately omits ─────────────────────
 
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: deepseek-v4-pro
+
+- id: llm-deepseek
+  config:
+    thinking: enabled
+    reasoningEffort: max
+
 - id: system-prompt
   config:
     persona: >-
@@ -118,6 +128,22 @@
       config:
         host: !!js ctx.webStartup.host ?? '127.0.0.1'
         port: !!js ctx.webStartup.port ?? 3080
+
+    # The Codex delegation endpoint shares this host's Agent, persistence,
+    # workspace and event services. `DSH_MCP_ALLOWED_ROOT` may select a wider
+    # deployment root; without it, delegation stays inside the exact directory
+    # from which the Web Host was launched.
+    - id: mcp-agent-server-web
+      name: '@deepseek-ai/dsh-mcp-agent-server/web'
+      config:
+        allowedRoots:
+          - !!js process.env.DSH_MCP_ALLOWED_ROOT?.trim() || process.cwd()
+        allowedPermissionPresets: [read-only, workspace-write, danger-full-access]
+        defaultPermissionPreset: read-only
+        maxWaitMs: 30000
+        maxResultBytes: 65536
+        path: /mcp/dsh-agent
+        authCredential: DSH_MCP_TOKEN
 
     # Web glue owned by this bundle: resolves the built frontend dist (an
     # assembly fact of dsh-web-app, never user config), mounts the

@@ -10,6 +10,8 @@ examples/*/*.jsonl
 .storages/
 .sessions/
 examples/*/.sessions/
+.dsh-mcp-*-probe.txt
+dsh-code-impact/
 coverage/
 .doc-typecheck-*/
 .node-next-types-*/

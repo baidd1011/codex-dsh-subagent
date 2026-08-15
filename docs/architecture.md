@@ -50,6 +50,8 @@ Here are some core packages that contribute to the Cordis tree.
 | [`core/scope`](subsystems/scope.md) | The per-agent scoped-registration primitive | library, no key |
 | [`llm/llm`](subsystems/llm-streaming.md) | Message and stream vocabulary plus the adapter seam | `ctx.llm` |
 
+The [`mcp-agent-server`](../packages/mcp/mcp-agent-server/README.md) plugin is an external-parent integration rather than a second agent core. It creates ordinary DSH sessions through `ctx.agents`, runs their exact task turns through `ctx.jobs`, and reconstructs them through `ctx.sessionPersistence`; the parent and DSH session keep separate prompts, tools, loops, models and logs. Its stdio entry is headless, while the `/web` entry registers a token-protected Streamable HTTP route on the existing Web Host. The Web entry publishes the session and attaches its exact cwd workspace before acknowledging `delegate_task`, so the existing session/event mux can render the persisted `Codex subtask` source marker immediately without a second DSH process or shared session. The selected native preset and current DSH model remain the source of truth.
+
 ## Events
 
 Events are the extension points, and picking the right domain is the first decision in most changes.
@@ -118,6 +120,7 @@ New behavior attaches to a documented extension point. Changing the loop itself 
 | Confine spawned processes | use a `ctx.sandbox` backend; consumers wrap argv before spawning |
 | Intercept a request, tool, or turn | use its `agent/*` or `tools/*` event; `agent/turn-stopping` stops a turn |
 | Add model-facing context | call `agent.inject()`; it lands in the next admitted request |
+| Automate an ordinary DSH session from an external parent | mount `mcp-agent-server`; pass task text through its MCP tools and keep the session durable |
 | Add UI or editor integration | drive `ctx.agents` and render from `session/event` |
 | Add a Web Client Chat node | register a `ConversationNodeDefinition` + keyed renderer |
 | Add durable session state | extend `SessionEventMap`; render and replay from the log |

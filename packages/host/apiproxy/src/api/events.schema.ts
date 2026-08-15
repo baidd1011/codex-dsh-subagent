@@ -74,6 +74,7 @@ export const hostFrameSchema = z.discriminatedUnion('type', [
     blank: z.boolean(),
     parentSessionId: sessionIdSchema.optional(),
     origin: z.literal('subagent').optional(),
+    codexSource: z.literal(true).optional(),
     cwd: z.string().optional(),
     agentPreset: z.string().optional(),
   }),

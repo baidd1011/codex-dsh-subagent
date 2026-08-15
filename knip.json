@@ -580,6 +580,15 @@
         "tests/**/*.ts"
       ]
     },
+    "packages/examples/mcp-agent-demo": {
+      "entry": [
+        "tests/**/*.e2e.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
     "packages/sdk/server": {
       "entry": [
         "tests/**/*.spec.ts",

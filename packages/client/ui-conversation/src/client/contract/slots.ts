@@ -361,6 +361,8 @@ export interface ChatNodeOwnerProps {
   openFile: (path: string) => void
   inspectCall: (callId: CallId) => void
   forkAt: (seq: number) => void
+  /** External root sessions are observation-only and cannot fork. */
+  forkDisabled?: boolean
   /** Resolve a session-authorized historical image for inline display. */
   loadImage: (attachment: ImageAttachmentRef) => Promise<string>
   fileMentions: (owner: TurnTailOwnerProps) => MarkdownFileMentions | undefined
@@ -472,6 +474,8 @@ export interface ComposerBarOwnerProps {
    * its normal DOM so the Workspace pick transitions in place.
    */
   disabled?: boolean
+  /** Root external DSH session: the browser is an observation surface only. */
+  readOnly?: boolean
   /** Whether the shared Workspace picker menu is expanded, regardless of which trigger opened it. */
   workspacePickerOpen?: boolean
   /** Open the existing Workspace picker from the inert textarea. */

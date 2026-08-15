@@ -26,6 +26,13 @@ function displayTitle(node: SessionNode, t: RowTranslate): string {
   return node.blank ? t('session.new') : node.title
 }
 
+/** Localized label for a root external session; nested children never reach rows. */
+function externalBadge(kind: SessionNode['externalKind'], t: RowTranslate): string | undefined {
+  if (kind === 'codex') return t('badge.codexSubtask')
+  if (kind === 'external') return t('badge.externalSubtask')
+  return undefined
+}
+
 /** Localized compact relative time ("刚刚"/"5分钟" in zh, "now"/"5min" in en). */
 function timeLabel(updatedAt: number, now: number, t: RowTranslate): string {
   const { unit, n } = relativeTime(updatedAt, now)
@@ -324,6 +331,9 @@ export function SearchResultItem({ result, currentId, onOpen, t }: {
           )}
         </span>
         <span className={css.searchResultTitle}>{result.title}</span>
+        {result.externalKind !== undefined && (
+          <span className={css.badge}>{externalBadge(result.externalKind, t)}</span>
+        )}
       </span>
       <span className={css.searchResultMeta}>
         <span className={css.searchResultWorkspace}>{result.workspace}</span>
@@ -374,15 +384,18 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
   const primaryStatus = statuses[0]
   const showStatus = primaryStatus.state !== 'done' || row.completed
   const [menuOpen, setMenuOpen] = useState(false)
+  const badge = externalBadge(row.externalKind, t)
   // Archive hides the row through the registry-global archive set and never
   // touches the session log, so it is not styled as destructive and needs no
   // confirmation dialog.
-  const sessionMenuItems = [
-    { id: 'rename', label: t('rename'), icon: <IconEditOutline16 /> },
-    { id: 'fork', label: t('menu.fork'), icon: <IconBranchOutline16 /> },
-    // 20-native glyph in the menu's 16px icon slot (Menu.module.css .itemIcon).
-    { id: 'archive', label: t('menu.archiveSession'), icon: <IconArchiveOutline20 size={16} /> },
-  ]
+  const sessionMenuItems = row.legacyReadOnly !== true
+    ? [
+      { id: 'rename', label: t('rename'), icon: <IconEditOutline16 /> },
+      { id: 'fork', label: t('menu.fork'), icon: <IconBranchOutline16 /> },
+      // 20-native glyph in the menu's 16px icon slot (Menu.module.css .itemIcon).
+      { id: 'archive', label: t('menu.archiveSession'), icon: <IconArchiveOutline20 size={16} /> },
+    ]
+    : [{ id: 'archive', label: t('menu.archiveSession'), icon: <IconArchiveOutline20 size={16} /> }]
   // Figma session cell: pad 8, status slot 16, then a 4px title gap.
   const ownRow = (
     <div
@@ -428,6 +441,7 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
         </span>
       )}
       <span className={css.title}>{title}</span>
+      {badge !== undefined && <span className={css.badge}>{badge}</span>}
       {/* A blank New Session row is a provisional placeholder: nothing has
           happened in it yet, so a "now" timestamp and the row verbs
           (rename/fork/archive) would all act on content that does not

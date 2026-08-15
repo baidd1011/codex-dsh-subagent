@@ -1206,6 +1206,33 @@ export interface LspLocalServerConfig {
 
 来源：[`packages/lsp/lsp-stdio/src/index.ts:82`](../packages/lsp/lsp-stdio/src/index.ts)
 
+<a id="deepseek-aidsh-mcp-agent-server"></a>
+
+## `@deepseek-ai/dsh-mcp-agent-server`
+
+需要：`agents` · `jobs` · `sessionPersistence` · `agentPresets` · `agentDefaultModel` · `permissionPresets`
+
+```ts config-catalog
+/** Server configuration shared by stdio and Web transports. */
+export interface Config {
+  /** Existing absolute directories that may be delegated. */
+  allowedRoots: string[]
+  /** Native permission presets that a new session may request. */
+  allowedPermissionPresets?: PermissionPreset[]
+  /** Permission preset used when a delegate request omits `permissionPreset`. */
+  defaultPermissionPreset?: PermissionPreset
+  /** Maximum bounded wait accepted by `get_task`. */
+  maxWaitMs?: number
+  /** Maximum UTF-8 bytes returned in the final `result` field. */
+  maxResultBytes?: number
+}
+
+/** Native DSH permission-preset id accepted by the delegation surface. */
+export type PermissionPreset = string
+```
+
+来源：[`packages/mcp/mcp-agent-server/src/index.ts:94`](../packages/mcp/mcp-agent-server/src/index.ts)
+
 <a id="deepseek-aidsh-mcp-client"></a>
 
 ## `@deepseek-ai/dsh-mcp-client`
@@ -3136,6 +3163,7 @@ export interface Config {
 - `@deepseek-ai/dsh-launch-environment`（[`packages/util/launch-environment/src/index.ts`](../packages/util/launch-environment/src/index.ts)）
 - `@deepseek-ai/dsh-llm-mock-server`（[`packages/test-support/llm-mock-server/src/index.ts`](../packages/test-support/llm-mock-server/src/index.ts)）
 - `@deepseek-ai/dsh-loader-smoke`（[`packages/test-support/loader-smoke/src/index.ts`](../packages/test-support/loader-smoke/src/index.ts)）
+- `@deepseek-ai/dsh-mcp-agent-demo`（[`packages/examples/mcp-agent-demo/src/index.ts`](../packages/examples/mcp-agent-demo/src/index.ts)）
 - `@deepseek-ai/dsh-native-command`（[`packages/util/native-command/src/index.ts`](../packages/util/native-command/src/index.ts)）
 - `@deepseek-ai/dsh-output-retention`（[`packages/util/output-retention/src/index.ts`](../packages/util/output-retention/src/index.ts)）
 - `@deepseek-ai/dsh-sandbox-windows-acl`（[`packages/sandbox/sandbox-windows-acl/src/index.ts`](../packages/sandbox/sandbox-windows-acl/src/index.ts)）

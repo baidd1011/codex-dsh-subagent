@@ -102,6 +102,20 @@ describe('sessions.fork', () => {
     await ctx.fiber.dispose()
   })
 
+  it('does not copy the Codex source marker into a normal DSH fork', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-codex-root', 1)
+    source.append('session/source', { source: 'codex' })
+
+    const response = await api(ctx).sessions.fork(request({ sessionId: source.id }))
+
+    expect(response.result.ok).toBe(true)
+    if (!response.result.ok) return
+    const child = ctx.sessions.get(response.result.value.sessionId)
+    expect(child?.events.some(event => event.type === 'session/source')).toBe(false)
+    await ctx.fiber.dispose()
+  })
+
   it('attaches a subagent fork to its nearest workspace-owning ancestor', async () => {
     const accounted: SessionId[] = []
     const attachSession = vi.fn<(sessionId: SessionId) => Promise<void>>()
@@ -196,6 +210,17 @@ describe('sessions.fork', () => {
       cwd: '/proj',
     })
     expect(ctx.sessions.get(response.result.value.sessionId)?.header.origin).toBeUndefined()
+    await ctx.fiber.dispose()
+  })
+
+  it('keeps a parentless external root behind its owning delegation route', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-external-root', 1, 'none', { origin: 'subagent' })
+    const response = await api(ctx).sessions.fork(request({ sessionId: source.id }))
+    expect(response.result).toMatchObject({
+      ok: false,
+      error: { code: 'agent-busy', details: { reason: 'use subagent delivery for this child session' } },
+    })
     await ctx.fiber.dispose()
   })
 

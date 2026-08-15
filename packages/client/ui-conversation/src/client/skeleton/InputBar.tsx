@@ -48,6 +48,7 @@ export function InputBar({
   resolveSubmitMode, toggleCommandMenu, stop, command, t,
   renderSlot, useNotices, useLexicon, useMenuLauncher,
   useProjection, sessionId, variant, disabled: inert = false, blocked,
+  readOnly = false,
   workspacePickerOpen = false, onRequestWorkspace,
   placeholder, accessory, overlay, leftItems, rightItems, footer,
 }: InputBarProps) {
@@ -130,13 +131,13 @@ export function InputBar({
   // inert no-workspace state, the machine faces absent (no session), or a
   // parent-offline continuable child. An owner block also disables input;
   // adjudicating and submitting render read-only so the draft stays visible.
-  const disabled = removed || inert || !live || blocked !== undefined || parentOffline
+  const disabled = readOnly || removed || inert || !live || blocked !== undefined || parentOffline
   const locked = disabled
   // The model seat is the ONE control a block leaves live: every block this
   // contract has is cleared by choosing a model, so locking it too would leave
   // the composer asking for the only thing it prevents. The other reasons to
   // be disabled do lock it — there is no session to choose a model for.
-  const modelSeatLocked = removed || inert || !live
+  const modelSeatLocked = readOnly || removed || inert || !live
   const machineBusy = input?.phase === 'adjudicating' || input?.phase === 'submitting'
   // The no-workspace textarea remains the resident DOM node but acts as the
   // existing picker trigger. Message controls stay locked until a Session
@@ -541,8 +542,8 @@ export function InputBar({
   // Ordinary sessions retain their primary Send/Stop toggle. A continuable
   // child keeps Send as the primary action and exposes Stop independently so
   // pointer users can queue follow-ups while its current turn is running.
-  const primaryStops = running && subagent === null
-  const interruptible = running && continuable
+  const primaryStops = !readOnly && running && subagent === null
+  const interruptible = !readOnly && running && continuable
   const primaryLabel = primaryStops ? t('input.stop') : t('input.send')
   const onPrimary = (): void => {
     if (primaryStops) {
@@ -557,7 +558,7 @@ export function InputBar({
   // The Access seat: the projection-fed permission chip (renders nothing
   // while the permissions key is absent — permission-less host or Draft —
   // or while the command face is absent with the session).
-  const accessSelect: ReactNode = command === undefined
+  const accessSelect: ReactNode = readOnly || command === undefined
     ? null
     : <PermissionSelect key={sessionId} value={permissions} locked={locked} command={command} t={t} />
 

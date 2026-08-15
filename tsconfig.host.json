@@ -280,6 +280,8 @@
     { "path": "./packages/hooks/hooks-claude-code" },
     { "path": "./packages/hooks/hooks-codex" },
     { "path": "./packages/mcp/mcp-client" },
+    { "path": "./packages/mcp/mcp-agent-server" },
+    { "path": "./packages/examples/mcp-agent-demo" },
     { "path": "./packages/host/apiproxy" },
     { "path": "./packages/host/directory-picker" },
     { "path": "./packages/host/directory-picker-auto" },

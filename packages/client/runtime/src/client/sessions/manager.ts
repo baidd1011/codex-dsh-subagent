@@ -800,6 +800,7 @@ export class SessionManager {
           sessionId: frame.sessionId, updatedAt: Date.now(), running: false, blank: frame.blank,
           ...(frame.parentSessionId !== undefined ? { parentSessionId: frame.parentSessionId } : {}),
           ...(frame.origin !== undefined ? { origin: frame.origin } : {}),
+          ...(frame.codexSource === true ? { codexSource: true as const } : {}),
           ...(frame.cwd !== undefined ? { cwd: frame.cwd } : {}),
           ...(frame.agentPreset !== undefined ? { agentPreset: frame.agentPreset } : {}),
         })
@@ -1046,6 +1047,7 @@ export class SessionManager {
         && prev.blank === entry.blank && prev.agentPreset === entry.agentPreset
         && prev.parentSessionId === entry.parentSessionId && prev.cwd === entry.cwd
         && prev.origin === entry.origin && prev.title === entry.title && prev.depth === entry.depth
+        && prev.codexSource === entry.codexSource
         && prev.pendingInteraction === entry.pendingInteraction
         && prev.projectionValues === entry.projectionValues
         && prev.completed === entry.completed
@@ -1092,6 +1094,7 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
           ? { parentSessionId: mutation.summary.parentSessionId } : {}),
         ...(existing.origin === undefined && mutation.summary.origin !== undefined
           ? { origin: mutation.summary.origin } : {}),
+        ...(mutation.summary.codexSource === true ? { codexSource: true as const } : {}),
         // Newest wins, not fill-only: a blank-session preset switch replaces
         // the creation-time value, and every producer of this field (the
         // create echo, the select echo, a list row) reports the CURRENT one.
@@ -1099,7 +1102,7 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
           ? { agentPreset: mutation.summary.agentPreset } : {}),
       }
       if (filled.cwd === existing.cwd && filled.parentSessionId === existing.parentSessionId
-        && filled.origin === existing.origin && filled.blank === existing.blank
+        && filled.origin === existing.origin && filled.codexSource === existing.codexSource && filled.blank === existing.blank
         && filled.agentPreset === existing.agentPreset) return [...summaries]
       return summaries.map(summary => summary.sessionId === mutation.summary.sessionId ? filled : summary)
     }

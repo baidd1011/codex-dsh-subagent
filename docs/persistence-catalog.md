@@ -90,7 +90,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }[T]
 ```
 
-Sources: [`packages/core/session/src/types.ts:336`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:343`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:372`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:404`](../packages/core/session/src/types.ts)
+Sources: [`packages/core/session/src/types.ts:342`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:349`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:378`](../packages/core/session/src/types.ts) · [`packages/core/session/src/types.ts:410`](../packages/core/session/src/types.ts)
 
 ## Events
 
@@ -215,7 +215,7 @@ Source: [`packages/interaction/user-approval/src/index.ts:67`](../packages/inter
 
 Types: [StreamChunk](subsystems/llm-streaming.md)
 
-Source: [`packages/core/session/src/types.ts:266`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:272`](../packages/core/session/src/types.ts)
 
 <a id="assistantmessage--surface"></a>
 
@@ -233,7 +233,7 @@ Source: [`packages/core/session/src/types.ts:266`](../packages/core/session/src/
 
 Types: [TokenUsage](subsystems/llm-streaming.md)
 
-Source: [`packages/core/session/src/types.ts:273`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:279`](../packages/core/session/src/types.ts)
 
 ### `command/*`
 
@@ -494,6 +494,30 @@ Source: [`packages/llm/llm-retry/src/types.ts:9`](../packages/llm/llm-retry/src/
 
 Source: [`packages/llm/llm-retry/src/types.ts:11`](../packages/llm/llm-retry/src/types.ts)
 
+### `mcp-agent/*`
+
+<a id="mcp-agenttask-ended--log-only"></a>
+
+#### `mcp-agent/task-ended` — log-only
+
+```ts persistence-catalog
+/** Durable terminal marker for one Codex-dispatched task. */
+'mcp-agent/task-ended': { taskId: string; messageId: string; turn: number; status: TaskStatus }
+```
+
+Source: [`packages/mcp/mcp-agent-server/src/index.ts:46`](../packages/mcp/mcp-agent-server/src/index.ts)
+
+<a id="mcp-agenttask-started--log-only"></a>
+
+#### `mcp-agent/task-started` — log-only
+
+```ts persistence-catalog
+/** Durable correlation marker for one Codex-dispatched task. */
+'mcp-agent/task-started': { taskId: string; messageId: string }
+```
+
+Source: [`packages/mcp/mcp-agent-server/src/index.ts:44`](../packages/mcp/mcp-agent-server/src/index.ts)
+
 ### `permission/*`
 
 <a id="permissionpreset--log-only"></a>
@@ -543,7 +567,7 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'request/context': RequestContext
 ```
 
-Source: [`packages/core/session/src/types.ts:309`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:315`](../packages/core/session/src/types.ts)
 
 <a id="requestheader--log-only"></a>
 
@@ -557,7 +581,7 @@ Source: [`packages/core/session/src/types.ts:309`](../packages/core/session/src/
 'request/header': { header: EpochHeader; reason: RequestHeaderReason }
 ```
 
-Source: [`packages/core/session/src/types.ts:304`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:310`](../packages/core/session/src/types.ts)
 
 ### `sandbox/*`
 
@@ -632,7 +656,22 @@ Source: [`packages/schedule/schedule/src/types.ts:219`](../packages/schedule/sch
 'session/end-seed': Record<string, never>
 ```
 
-Source: [`packages/core/session/src/types.ts:332`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:338`](../packages/core/session/src/types.ts)
+
+<a id="sessionsource--log-only"></a>
+
+#### `session/source` — log-only
+
+```ts persistence-catalog
+/**
+ * Records the non-model product surface that created this session. The
+ * marker is informational only: it does not grant ownership or restrict
+ * ordinary session operations.
+ */
+'session/source': { source: 'codex' }
+```
+
+Source: [`packages/core/session/src/types.ts:242`](../packages/core/session/src/types.ts)
 
 <a id="sessiontitle--log-only"></a>
 
@@ -674,7 +713,7 @@ Source: [`packages/session/session-title-llm/src/index.ts:43`](../packages/sessi
 'step/end': { turn: number; step: number }
 ```
 
-Source: [`packages/core/session/src/types.ts:256`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:262`](../packages/core/session/src/types.ts)
 
 <a id="stepstart--log-only"></a>
 
@@ -685,7 +724,7 @@ Source: [`packages/core/session/src/types.ts:256`](../packages/core/session/src/
 'step/start': { turn: number; step: number }
 ```
 
-Source: [`packages/core/session/src/types.ts:254`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:260`](../packages/core/session/src/types.ts)
 
 ### `subagent/*`
 
@@ -719,7 +758,7 @@ Source: [`packages/subagent/subagent/src/descriptor.ts:37`](../packages/subagent
 
 Types: [TodoItem](subsystems/session.md)
 
-Source: [`packages/core/session/src/types.ts:299`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:305`](../packages/core/session/src/types.ts)
 
 ### `tool/*`
 
@@ -738,7 +777,7 @@ Source: [`packages/core/session/src/types.ts:299`](../packages/core/session/src/
 
 Types: [CallId](subsystems/core.md)
 
-Source: [`packages/core/session/src/types.ts:279`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:285`](../packages/core/session/src/types.ts)
 
 <a id="toolcode-dispatch--log-only"></a>
 
@@ -813,7 +852,7 @@ Source: [`packages/core/tools/src/types.ts:40`](../packages/core/tools/src/types
 }
 ```
 
-Source: [`packages/core/session/src/types.ts:291`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:297`](../packages/core/session/src/types.ts)
 
 ### `tool-workflow/*`
 
@@ -893,7 +932,7 @@ Source: [`packages/workflow/tool-workflow/src/types.ts:47`](../packages/workflow
 
 Types: [TurnEndReason](subsystems/session.md)
 
-Source: [`packages/core/session/src/types.ts:252`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:258`](../packages/core/session/src/types.ts)
 
 <a id="turnstart--log-only"></a>
 
@@ -909,7 +948,7 @@ Source: [`packages/core/session/src/types.ts:252`](../packages/core/session/src/
 'turn/start': { turn: number }
 ```
 
-Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:249`](../packages/core/session/src/types.ts)
 
 ### `user/*`
 
@@ -928,7 +967,7 @@ Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/
 'user/message': UserMessage
 ```
 
-Source: [`packages/core/session/src/types.ts:264`](../packages/core/session/src/types.ts)
+Source: [`packages/core/session/src/types.ts:270`](../packages/core/session/src/types.ts)
 
 ### `web/*`
 

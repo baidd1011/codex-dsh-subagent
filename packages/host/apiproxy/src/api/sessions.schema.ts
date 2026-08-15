@@ -56,6 +56,7 @@ export const sessionSummarySchema = z.object({
   blank: z.boolean(),
   parentSessionId: sessionIdSchema.optional(),
   origin: z.literal('subagent').optional(),
+  codexSource: z.literal(true).optional(),
   cwd: z.string().optional(),
   agentPreset: z.string().optional(),
   projections: z.lazy(() => sessionProjectionsBlockSchema).optional(),
@@ -219,7 +220,8 @@ export const sessionProjectionsBlockSchema = z.object({
 export const sessionListMetadataProjectionSchema: z.ZodType<SessionListMetadata> = z.object({
   blank: z.boolean(),
   lastPromptAt: z.number().nullable(),
-})
+  codexSource: z.boolean().optional(),
+}) as unknown as z.ZodType<SessionListMetadata>
 
 /**
  * imageLimits projection unit schema (host-side view validation). zod widens

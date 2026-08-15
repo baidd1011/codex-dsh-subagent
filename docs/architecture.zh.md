@@ -50,6 +50,8 @@ dsh --profile web --dump-config
 | [`core/scope`](subsystems/scope.md) | 按 agent 划分作用域的注册原语 | 库，无 ctx 键 |
 | [`llm/llm`](subsystems/llm-streaming.md) | 消息与流式词汇表，以及适配器 seam | `ctx.llm` |
 
+[`mcp-agent-server`](../packages/mcp/mcp-agent-server/README.md) 插件属于外部主 Agent 集成，而不是第二个 agent 内核。它通过 `ctx.agents` 创建普通 DSH session，通过 `ctx.jobs` 执行精确任务轮次，并通过 `ctx.sessionPersistence` 重建；主 Agent 与 DSH session 保持各自的 prompt、工具、loop、模型和日志。它的 stdio 入口面向 headless，`/web` 入口则在既有 Web Host 上注册 token 保护的 Streamable HTTP 路由。Web 入口只有在 session 发布并附加到精确 cwd 工作区后才确认 `delegate_task`，因此现有 session/event mux 可以立即呈现持久化的“Codex 子任务”来源标记；不需要第二个 DSH 进程，也不共享 session。实际使用的预设和模型由 DSH 当前名录与默认模型服务决定。
+
 <a id="events"></a>
 
 ## 事件
@@ -122,6 +124,7 @@ seam 正是替换一个提供方就能改变整个产品的原因。文件系统
 | 限制所启动的进程 | 使用 `ctx.sandbox` 后端；消费方在启动进程前包装 argv |
 | 拦截请求、工具或轮次 | 使用相应的 `agent/*` 或 `tools/*` 事件；`agent/turn-stopping` 会停止轮次 |
 | 添加模型可见上下文 | 调用 `agent.inject()`；它会落到下一次获准的请求中 |
+| 从外部主 Agent 自动化普通 DSH session | 挂载 `mcp-agent-server`；通过 MCP 工具传递任务文本，并让会话持久化 |
 | 添加 UI 或编辑器集成 | 驱动 `ctx.agents` 并从 `session/event` 渲染 |
 | 添加 Web Client Chat 节点 | 注册 `ConversationNodeDefinition` + keyed renderer |
 | 添加持久会话状态 | 扩展 `SessionEventMap`；从日志渲染和回放 |

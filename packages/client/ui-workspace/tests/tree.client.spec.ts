@@ -141,6 +141,56 @@ describe('deriveGroups', () => {
     ).items[0]).toMatchObject({ id: parent.id, runningSubagentCount: 2 })
   })
 
+  it('shows parentless external roots and classifies the Codex source marker', () => {
+    const codex = {
+      ...summary('codex-root', 3),
+      codexSource: true as const,
+      running: true,
+    }
+    const external = {
+      ...summary('other-root', 2),
+      origin: 'subagent' as const,
+      running: false,
+    }
+    const nested = {
+      ...summary('nested', 4),
+      origin: 'subagent' as const,
+      parentId: codex.id,
+      running: true,
+    }
+    const groups = deriveGroups(
+      list(codex, external, nested),
+      [workspace('first', ['codex-root', 'other-root', 'nested'])],
+      noArchive,
+      view(['first']),
+    )
+
+    expect(groups[0]!.sessions.map(node => node.id)).toEqual([codex.id, external.id])
+    expect(groups[0]!.sessions.find(node => node.id === codex.id)?.externalKind).toBe('codex')
+    expect(groups[0]!.sessions.find(node => node.id === external.id)?.externalKind).toBe('external')
+  })
+
+  it('shows a blank parentless external root as soon as the Host publishes it', () => {
+    const codex = {
+      ...summary('codex-root', 3),
+      blank: true,
+      codexSource: true as const,
+    }
+    const groups = deriveGroups(
+      list(codex),
+      [workspace('first', ['codex-root'])],
+      noArchive,
+      view(['first']),
+    )
+
+    expect(groups[0]!.sessionCount).toBe(1)
+    expect(groups[0]!.sessions[0]).toMatchObject({
+      id: codex.id,
+      blank: true,
+      externalKind: 'codex',
+    })
+  })
+
   it('ignores fork lineage and sorts every ungrouped session as a top-level row', () => {
     const parent = summary('parent', 1)
     const oldChild = { ...summary('old-child', 10), parentId: parent.id }
@@ -224,6 +274,25 @@ describe('deriveFlat', () => {
       noArchive,
     )
     expect(rows.map(row => row.id)).toEqual([fork.id, parent.id])
+  })
+
+  it('keeps parentless external roots in flat mode while hiding nested children', () => {
+    const codex = {
+      ...summary('codex-root', 3), codexSource: true as const,
+    }
+    const nested = {
+      ...summary('nested', 4), origin: 'subagent' as const, parentId: codex.id,
+    }
+    expect(deriveFlat(list(codex, nested), noArchive).map(node => node.id)).toEqual([codex.id])
+  })
+
+  it('keeps a blank parentless external root visible in flat mode', () => {
+    const codex = {
+      ...summary('codex-root', 3),
+      blank: true,
+      codexSource: true as const,
+    }
+    expect(deriveFlat(list(codex), noArchive).map(node => node.id)).toEqual([codex.id])
   })
 
   it('tolerates ids whose summary has not landed yet', () => {

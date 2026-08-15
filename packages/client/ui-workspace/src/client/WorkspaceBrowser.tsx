@@ -516,7 +516,7 @@ function SessionTree({
                     onRename={onSessionRename}
                     onFork={forkSession}
                     onArchive={onSessionArchive}
-                    drag={dragProps}
+                    drag={node.legacyReadOnly === true ? undefined : dragProps}
                     t={t}
                   />
                 )
@@ -633,7 +633,7 @@ function FlatList({
               onFork={forkSession}
               onArchive={onSessionArchive}
               flat
-              drag={{
+              drag={node.legacyReadOnly === true ? undefined : {
                 start: () => {
                   dropCommitted.current = false
                   setDrag({ accountKey: FLAT_SESSION_ORDER_KEY, sessionId: node.id, over: null })

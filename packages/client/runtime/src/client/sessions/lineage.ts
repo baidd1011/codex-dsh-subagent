@@ -24,6 +24,8 @@ export interface SessionListEntry {
   parentSessionId?: SessionId
   /** Coarse durable origin for navigation filtering; not a continuation capability. */
   origin?: 'subagent'
+  /** Source badge for an ordinary session created through the Codex MCP bridge. */
+  codexSource?: true
   cwd?: string
   /** Agent preset the session's agent was composed from (summary passthrough). */
   agentPreset?: string
