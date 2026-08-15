@@ -76,11 +76,11 @@ describe('web-app runtime glue', () => {
     expect(patch).not.toContain('resolve(process.cwd(), \'..\')')
   })
 
-  it('pins Web defaults to DeepSeek V4 Pro with maximum reasoning', () => {
+  it('adds the MCP permission presets without replacing native model defaults', () => {
     const patch = readFileSync(new URL('../cordis.patch.yml', import.meta.url), 'utf8')
-    expect(patch).toContain('model: deepseek-v4-pro')
-    expect(patch).toContain('reasoningEffort: max')
     expect(patch).toContain('allowedPermissionPresets: [read-only, workspace-write, danger-full-access]')
+    expect(patch).not.toContain('id: agent-default-model')
+    expect(patch).not.toContain('id: llm-deepseek')
     expect(patch).not.toContain('preset: standard')
   })
 

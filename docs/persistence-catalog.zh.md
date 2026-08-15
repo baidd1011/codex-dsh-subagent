@@ -507,7 +507,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'mcp-agent/task-ended': { taskId: string; messageId: string; turn: number; status: TaskStatus }
 ```
 
-来源：[`packages/mcp/mcp-agent-server/src/index.ts:46`](../packages/mcp/mcp-agent-server/src/index.ts)
+来源：[`packages/mcp/mcp-agent-server/src/index.ts:50`](../packages/mcp/mcp-agent-server/src/index.ts)
 
 <a id="mcp-agenttask-started--log-only"></a>
 
@@ -518,7 +518,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'mcp-agent/task-started': { taskId: string; messageId: string }
 ```
 
-来源：[`packages/mcp/mcp-agent-server/src/index.ts:44`](../packages/mcp/mcp-agent-server/src/index.ts)
+来源：[`packages/mcp/mcp-agent-server/src/index.ts:48`](../packages/mcp/mcp-agent-server/src/index.ts)
 
 ### `permission/*`
 

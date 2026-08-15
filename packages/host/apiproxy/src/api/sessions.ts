@@ -42,7 +42,7 @@ export interface SessionListMetadata {
   /** Latest source.kind=user message time in the checkpoint prefix. */
   lastPromptAt: number | null
   /** True after the durable Codex source marker enters the checkpoint prefix. */
-  codexSource?: boolean
+  codexSource?: true | undefined
 }
 
 declare module '@deepseek-ai/dsh-llm' {

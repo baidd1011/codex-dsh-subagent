@@ -174,4 +174,55 @@ describe('Web-hosted MCP transport', () => {
     expect(tools.map(tool => tool.name)).toContain('web_probe')
     expect(runtimeRegisterTools).toHaveBeenCalledTimes(1)
   })
+
+  it('rejects unknown sessions and expires an initialized transport on DELETE', async () => {
+    const route = await bootRoute('secret')
+    const unknown = await fetch(route.url, {
+      method: 'POST',
+      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
+      headers: {
+        authorization: 'Bearer secret',
+        'mcp-session-id': 'missing-session',
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+      },
+    })
+    expect(unknown.status).toBe(404)
+    await expect(unknown.json()).resolves.toMatchObject({
+      error: { code: -32000, message: 'MCP session not found' },
+    })
+
+    const initialized = await fetch(route.url, {
+      method: 'POST',
+      body: initialize,
+      headers: {
+        authorization: 'Bearer secret',
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+      },
+    })
+    const sessionId = initialized.headers.get('mcp-session-id')
+    expect(sessionId).not.toBeNull()
+    const expired = await fetch(route.url, {
+      method: 'DELETE',
+      headers: {
+        authorization: 'Bearer secret',
+        'mcp-session-id': sessionId as string,
+        accept: 'application/json, text/event-stream',
+      },
+    })
+    expect(expired.status).toBe(200)
+
+    const afterExpiry = await fetch(route.url, {
+      method: 'POST',
+      body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/list', params: {} }),
+      headers: {
+        authorization: 'Bearer secret',
+        'mcp-session-id': sessionId as string,
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+      },
+    })
+    expect(afterExpiry.status).toBe(404)
+  })
 })

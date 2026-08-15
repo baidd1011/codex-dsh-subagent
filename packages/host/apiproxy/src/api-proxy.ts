@@ -1199,7 +1199,10 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   // (such as the MCP bridge) starts the first turn. This keeps the same
   // default-model and live model-switch semantics for every ordinary session,
   // instead of letting a transport install a competing fixed selection.
-  ctx.on('agent/created', ({ agent }) => { selectionFor(agent) })
+  ctx.on('agent/created', ({ agent }) => {
+    if (agent.session.header.origin === 'subagent') return
+    selectionFor(agent)
+  })
 
   /**
    * Reject an attempt to run an existing session under a different preset.

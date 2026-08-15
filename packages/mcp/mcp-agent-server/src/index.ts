@@ -21,7 +21,7 @@ import type { Branded } from '@deepseek-ai/dsh-brand'
 import type { JobOutcome, JobId } from '@deepseek-ai/dsh-jobs'
 import type { Session, SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
 import { SessionId as makeSessionId } from '@deepseek-ai/dsh-session'
-import type { TokenUsage, UserMessage } from '@deepseek-ai/dsh-llm'
+import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 // These imports merge the service and session-event declarations into this host face.
 import type {} from '@deepseek-ai/dsh-agent'
@@ -37,6 +37,10 @@ import type {} from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-subagent'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import type {} from '@deepseek-ai/dsh-host-apiproxy'
+import { addUsage, summarizeEvents, taskEventSlice, usageFromEvents } from './task-result.ts'
+import type { EventSummary, TaskStatus, TaskUsage } from './task-result.ts'
+
+export type { TaskStatus, TaskUsage } from './task-result.ts'
 
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
@@ -67,18 +71,6 @@ export function RunId(value: string): RunId {
 
 /** Native DSH permission-preset id accepted by the delegation surface. */
 export type PermissionPreset = string
-
-/** Terminal or live status returned by the MCP tools. */
-export type TaskStatus = 'running' | 'completed' | 'max-tokens' | 'error' | 'aborted' | 'incomplete'
-
-/** Token totals exposed by task results. */
-export interface TaskUsage {
-  inputTokens: number
-  outputTokens: number
-  cacheReadTokens?: number
-  cacheWriteTokens?: number
-  reasoningTokens?: number
-}
 
 /** Structured result shared by the MCP task tools. */
 export interface TaskResult {
@@ -167,13 +159,6 @@ function taskReadyState(): Pick<RunRecord, 'ready' | 'resolveReady' | 'rejectRea
   }
 }
 
-interface EventSummary {
-  readonly status: TaskStatus
-  readonly result?: string
-  readonly reason?: string
-  readonly usage?: TaskUsage
-}
-
 const TASK_STATUSES = ['running', 'completed', 'max-tokens', 'error', 'aborted', 'incomplete'] as const
 const TASK_OUTPUT_SCHEMA = {
   runId: mcpZ.string(),
@@ -226,8 +211,6 @@ const PRESET_LIST_OUTPUT_SCHEMA = {
   })),
   defaultPreset: mcpZ.string(),
 } as const
-
-const encoder = new TextEncoder()
 
 /**
  * Validate deployment-level options that Schemastery cannot express fully.
@@ -284,158 +267,6 @@ async function canonicalDirectory(path: string, label: string): Promise<string> 
   }
 }
 
-function trimUtf8(text: string, maxBytes: number): string {
-  if (encoder.encode(text).byteLength <= maxBytes) return text
-  let trimmed = Buffer.from(text, 'utf8').subarray(0, maxBytes).toString('utf8')
-  while (encoder.encode(trimmed).byteLength > maxBytes) trimmed = trimmed.slice(0, -1)
-  return trimmed
-}
-
-function toTaskUsage(usage: TokenUsage): TaskUsage {
-  return {
-    inputTokens: usage.inputTokens,
-    outputTokens: usage.outputTokens,
-    ...usage.cacheReadTokens === undefined ? {} : { cacheReadTokens: usage.cacheReadTokens },
-    ...usage.cacheWriteTokens === undefined ? {} : { cacheWriteTokens: usage.cacheWriteTokens },
-    ...usage.reasoningTokens === undefined ? {} : { reasoningTokens: usage.reasoningTokens },
-  }
-}
-
-function addUsage(total: TaskUsage | undefined, next: TokenUsage): TaskUsage {
-  if (total === undefined) return toTaskUsage(next)
-  return {
-    inputTokens: total.inputTokens + next.inputTokens,
-    outputTokens: total.outputTokens + next.outputTokens,
-    ...total.cacheReadTokens === undefined && next.cacheReadTokens === undefined ? {} : {
-      cacheReadTokens: (total.cacheReadTokens ?? 0) + (next.cacheReadTokens ?? 0),
-    },
-    ...total.cacheWriteTokens === undefined && next.cacheWriteTokens === undefined ? {} : {
-      cacheWriteTokens: (total.cacheWriteTokens ?? 0) + (next.cacheWriteTokens ?? 0),
-    },
-    ...total.reasoningTokens === undefined && next.reasoningTokens === undefined ? {} : {
-      reasoningTokens: (total.reasoningTokens ?? 0) + (next.reasoningTokens ?? 0),
-    },
-  }
-}
-
-function usageFromEvents(events: readonly SessionEvent[]): TaskUsage | undefined {
-  let usage: TaskUsage | undefined
-  for (const event of events) {
-    if (event.type === 'assistant/message' && event.data.usage !== undefined) {
-      usage = addUsage(usage, event.data.usage)
-    }
-  }
-  return usage
-}
-
-function messageText(message: { content: readonly { type: string; text?: string }[] }): string {
-  return message.content
-    .filter(block => block.type === 'text' && typeof block.text === 'string')
-    .map(block => block.text)
-    .join('')
-}
-
-function reasonText(reason: { kind: string; error?: unknown }): string {
-  if (reason.kind === 'error') {
-    const error = reason.error
-    if (typeof error === 'object' && error !== null && 'message' in error) return String(error.message)
-    return String(error)
-  }
-  return reason.kind
-}
-
-function reasonStatus(reason: { kind: string }): TaskStatus {
-  switch (reason.kind) {
-    case 'completed': return 'completed'
-    case 'max-tokens': return 'max-tokens'
-    case 'aborted': return 'aborted'
-    case 'interrupted': return 'incomplete'
-    case 'blocked':
-    case 'error': return 'error'
-    default: return 'error'
-  }
-}
-
-function summarizeEvents(events: readonly SessionEvent[], maxResultBytes: number): EventSummary {
-  let result: string | undefined
-  let reason: { kind: string; error?: unknown } | undefined
-  for (const event of events) {
-    if (event.type === 'assistant/message') {
-      const text = messageText(event.data.message)
-      if (text.length > 0) result = text
-    } else if (event.type === 'turn/end') {
-      reason = event.data.reason
-    }
-  }
-  const usage = usageFromEvents(events)
-  let openTurn = false
-  for (const event of events) {
-    if (event.type === 'turn/start') openTurn = true
-    else if (event.type === 'turn/end') openTurn = false
-  }
-  if (reason === undefined || openTurn) {
-    return {
-      status: 'incomplete',
-      ...result === undefined ? {} : { result: trimUtf8(result, maxResultBytes) },
-      ...usage === undefined ? {} : { usage },
-      reason: openTurn ? 'session has an unfinished turn' : 'session has no completed turn',
-    }
-  }
-  return {
-    status: reasonStatus(reason),
-    ...result === undefined ? {} : { result: trimUtf8(result, maxResultBytes) },
-    reason: reasonText(reason),
-    ...usage === undefined ? {} : { usage },
-  }
-}
-
-/**
- * Select the durable event interval owned by one MCP task. A later page
- * message must not extend an incomplete interval when the task never claimed
- * a turn, so the no-turn fallback stops at the task message (or its marker).
- * @param events - the session log in sequence order.
- * @param startSeq - sequence of the task-started marker.
- * @param messageId - durable user message submitted for this task.
- * @param turn - claimed turn, when the Agent reached the inbox boundary.
- * @param endedSeq - task-ended marker sequence, when one was persisted.
- * @returns the task-owned event interval.
- */
-function taskEventSlice(
-  events: readonly SessionEvent[],
-  startSeq: number,
-  messageId: string | undefined,
-  turn: number | undefined,
-  endedSeq?: number,
-): readonly SessionEvent[] {
-  const startIndex = events.findIndex(event => event.seq >= startSeq)
-  if (startIndex < 0) return []
-  const endIndexFromSeq = endedSeq === undefined
-    ? undefined
-    : events.findIndex(event => event.seq === endedSeq)
-  if (endIndexFromSeq !== undefined && endIndexFromSeq >= startIndex) {
-    return events.slice(startIndex, endIndexFromSeq + 1)
-  }
-  const messageIndex = messageId === undefined ? -1 : events.findIndex(event =>
-    event.type === 'user/message' && event.data.id === messageId && event.seq >= startSeq)
-  const turnStartIndex = turn === undefined
-    ? messageIndex < 0 ? -1 : events.findLastIndex((event, index) =>
-      index >= startIndex && index <= messageIndex && event.type === 'turn/start')
-    : events.findIndex(event => event.seq >= startSeq && event.type === 'turn/start' && event.data.turn === turn)
-  if (turnStartIndex < 0) {
-    return events.slice(startIndex, Math.max(startIndex, messageIndex) + 1)
-  }
-  const turnStart = events[turnStartIndex]
-  const selectedTurn = turnStart?.type === 'turn/start'
-    ? turnStart.data.turn
-    : turn
-  const turnEndIndex = selectedTurn === undefined ? -1 : events.findIndex((event, index) =>
-    index >= turnStartIndex && event.type === 'turn/end' && event.data.turn === selectedTurn)
-  if (turnEndIndex >= turnStartIndex) return events.slice(startIndex, turnEndIndex + 1)
-  const nextTurnIndex = events.findIndex((event, index) =>
-    index > turnStartIndex && event.type === 'turn/start')
-  return events.slice(startIndex, nextTurnIndex < 0 ? events.length : nextTurnIndex)
-}
-
 function taskResponse(record: RunRecord, summary: EventSummary): TaskResult {
   return {
     runId: String(record.runId),
@@ -489,7 +320,7 @@ export interface McpAgentRuntime {
  */
 export function createMcpServer(): McpServer {
   return new McpServer(
-    { name: 'dsh-mcp-agent', version: '0.1.0' },
+    { name: 'dsh-mcp-agent', version: '0.1.0-rc.5' },
     { capabilities: { tools: {} } },
   )
 }

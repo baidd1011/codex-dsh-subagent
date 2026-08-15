@@ -13,16 +13,6 @@
 
 # ── surface-specific values the base deliberately omits ─────────────────────
 
-- id: agent-default-model
-  config:
-    provider: deepseek-official
-    model: deepseek-v4-pro
-
-- id: llm-deepseek
-  config:
-    thinking: enabled
-    reasoningEffort: max
-
 - id: system-prompt
   config:
     persona: >-

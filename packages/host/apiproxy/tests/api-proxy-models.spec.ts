@@ -129,6 +129,47 @@ function registerTextOnly(ctx: Context): void {
 }
 
 describe('Web session model selection', () => {
+  it('does not replace an internal subagent model route with the Web default', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(SystemPrompt, { persona: '' })
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(UserQuestionService)
+    await ctx.plugin(AgentRegistry)
+    createApiProxy(ctx, {
+      defaultModelSelection: () => ({
+        provider: 'web-default',
+        model: 'web-model',
+        reasoningEffort: ReasoningEffortId('max'),
+      }),
+      cwd: '/tmp',
+    })
+
+    const session = ctx.sessions.create(undefined, {
+      meta: { origin: 'subagent', delegationDepth: 1 },
+    })
+    const childRoute: LlmCallConfig = { provider: 'deepseek', model: 'cheap-model' }
+    const agent = {
+      id: session.id,
+      session,
+      options: childRoute,
+      status: 'running',
+      ctx,
+      inbox: { nextTurn: [], nextStep: [] },
+    } as unknown as Agent
+    ctx.agents.register(agent)
+
+    expect((await ctx.systemPrompt.assemble()).variables).not.toMatchObject({
+      provider: 'web-default', model: 'web-model',
+    })
+    await expect(agentEvents(ctx, agent).waterfall(
+      'agent/request',
+      { turn: 1, step: 0, signal: new AbortController().signal },
+      () => Promise.resolve(childRoute),
+    )).resolves.toEqual(childRoute)
+    await ctx.fiber.dispose()
+  })
+
   it('validates an ordered image batch before persisting any member', async () => {
     const { ctx, agent, sessionId } = await harness()
     const validateImage = vi.fn((_input: { data: Uint8Array }) => Promise.resolve())

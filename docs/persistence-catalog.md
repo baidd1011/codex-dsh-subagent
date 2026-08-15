@@ -505,7 +505,7 @@ Source: [`packages/llm/llm-retry/src/types.ts:11`](../packages/llm/llm-retry/src
 'mcp-agent/task-ended': { taskId: string; messageId: string; turn: number; status: TaskStatus }
 ```
 
-Source: [`packages/mcp/mcp-agent-server/src/index.ts:46`](../packages/mcp/mcp-agent-server/src/index.ts)
+Source: [`packages/mcp/mcp-agent-server/src/index.ts:50`](../packages/mcp/mcp-agent-server/src/index.ts)
 
 <a id="mcp-agenttask-started--log-only"></a>
 
@@ -516,7 +516,7 @@ Source: [`packages/mcp/mcp-agent-server/src/index.ts:46`](../packages/mcp/mcp-ag
 'mcp-agent/task-started': { taskId: string; messageId: string }
 ```
 
-Source: [`packages/mcp/mcp-agent-server/src/index.ts:44`](../packages/mcp/mcp-agent-server/src/index.ts)
+Source: [`packages/mcp/mcp-agent-server/src/index.ts:48`](../packages/mcp/mcp-agent-server/src/index.ts)
 
 ### `permission/*`
 

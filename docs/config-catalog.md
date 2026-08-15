@@ -1229,7 +1229,7 @@ export interface Config {
 export type PermissionPreset = string
 ```
 
-Source: [`packages/mcp/mcp-agent-server/src/index.ts:94`](../packages/mcp/mcp-agent-server/src/index.ts)
+Source: [`packages/mcp/mcp-agent-server/src/index.ts:86`](../packages/mcp/mcp-agent-server/src/index.ts)
 
 <a id="deepseek-aidsh-mcp-client"></a>
 

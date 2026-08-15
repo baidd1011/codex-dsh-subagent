@@ -217,11 +217,11 @@ export const sessionProjectionsBlockSchema = z.object({
 }) as unknown as z.ZodType<Wire<SessionProjectionsBlock>>
 
 /** Host-side validation for the persisted Session-list projection. */
-export const sessionListMetadataProjectionSchema: z.ZodType<SessionListMetadata> = z.object({
+export const sessionListMetadataProjectionSchema = z.object({
   blank: z.boolean(),
   lastPromptAt: z.number().nullable(),
-  codexSource: z.boolean().optional(),
-}) as unknown as z.ZodType<SessionListMetadata>
+  codexSource: z.literal(true).optional(),
+}) satisfies z.ZodType<SessionListMetadata>
 
 /**
  * imageLimits projection unit schema (host-side view validation). zod widens
