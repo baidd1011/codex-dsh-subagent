@@ -77,6 +77,9 @@ async function bootWeb(
     // and the URL prompt line — surface glue, not anything that decides an
     // agent's capabilities, which is all this file asserts.
     { id: 'web-runtime', disabled: true },
+    // The Web-hosted MCP bridge also injects `webServer`; this capability
+    // test does not start the port it depends on.
+    { id: 'mcp-agent-server-web', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
     // A deployment-level skill on the host registry's GLOBAL layer — the same
     // registration shape a repository plugin's skill root uses. The layered
